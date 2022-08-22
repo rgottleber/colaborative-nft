@@ -17,13 +17,13 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
 
     // Rinkeby coordinator. For other networks,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
-    address vrfCoordinator = 0x2eD832Ba664535e5886b75D64C46EB9a228C2610;
+    address vrfCoordinator = 0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D;
 
     // The gas lane to use, which specifies the maximum gas price to bump to.
     // For a list of available gas lanes on each network,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
     bytes32 keyHash =
-        0x354d2f95da55398f44b7cff77da56283d9c6c829a4bdf1bbcaf2ad6a4d081f61;
+        0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15;
 
     // Depends on the number of requested values that you want sent to the
     // fulfillRandomWords() function. Storing each word costs about 20,000 gas,
@@ -34,11 +34,11 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
     uint32 callbackGasLimit = 999999;
 
     // The default is 3, but you can set this higher.
-    uint16 requestConfirmations = 1;
+    uint16 requestConfirmations = 3;
 
     // For this example, retrieve 2 random values in one request.
     // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
-    uint32 numWords = 1;
+    uint32 numWords = 2;
 
     uint256[] public s_randomWords;
     uint256 s_requestId;
@@ -50,7 +50,7 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
     string headSVG =
         string(
             abi.encodePacked(
-                "<svg viewBox='0 0 ",
+                "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ",
                 Strings.toString(width),
                 " ",
                 Strings.toString(height),
@@ -59,22 +59,24 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
                 Strings.toString(width),
                 "' height='",
                 Strings.toString(height),
-                "' fill='#1A1B27' />"
+                "' fill='#1C1C1C' />"
             )
         );
     string tailSVG = "</svg>";
     string bodySVG = "";
-    string lastCircle = "";
-    string[] colors = ["#3F5ACB", "#EA5D65", "#F0CD49", "#FFFFFF"];
+    string lastShape = "";
+    string[] colors = ["#3366FF", "#00FF93", "#FFFFFF"];
 
-    struct CircleAttributes {
+    struct ShapeAttributes {
         string x;
         string y;
         string r;
+        string w;
+        string h;
         string fill;
     }
 
-    CircleAttributes[] circles;
+    ShapeAttributes[] circles;
 
     event SpotClaimed(string notification);
 
@@ -86,10 +88,38 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
         s_owner = msg.sender;
         s_subscriptionId = subscriptionId;
         _safeMint(s_owner, 0);
+        string memory _finalSVG = string(
+            abi.encodePacked(headSVG, bodySVG, tailSVG)
+        );
+        finalSVG = _finalSVG;
+        string memory json = Base64.encode(
+            bytes(
+                string(
+                    abi.encodePacked(
+                        '{"name": "The Worlds Largest NFT",',
+                        '"description": "The Worlds Largest NFT for SmartCon 2022",',
+                        '"image": "data:image/svg+xml;base64,',
+                        Base64.encode(bytes(_finalSVG)),
+                        '"}'
+                    )
+                )
+            )
+        );
+        string memory finalTokenURI = string(
+            abi.encodePacked("data:application/json;base64,", json)
+        );
+        _setTokenURI(0, finalTokenURI);
+    }
+
+    function callRandomWords(uint256 _val, uint256 _val2) public {
+        uint256[] memory _randWords = new uint256[](2);
+        _randWords[0] = _val;
+        _randWords[1] = _val2;
+        fulfillRandomWords(123, _randWords);
     }
 
     // Assumes the subscription is funded sufficiently.
-    function claimYourSpot() public {
+    function claimYourSpot() public onlyOwner {
         // Will revert if subscription is not set and funded.
         s_requestId = COORDINATOR.requestRandomWords(
             keyHash,
@@ -101,7 +131,13 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
     }
 
     function getSVG() public view returns (string memory SVG) {
-        return finalSVG;
+        return
+            string(
+                abi.encodePacked(
+                    "data:image/svg+xml;base64,",
+                    Base64.encode(bytes(finalSVG))
+                )
+            );
     }
 
     function fulfillRandomWords(uint256, uint256[] memory randomWords)
@@ -109,61 +145,75 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
         override
     {
         s_randomWords = randomWords;
-        addNewCircle(randomWords[0]);
+        addNewShape(randomWords[0], randomWords[1]);
         emit SpotClaimed("New Spot Claimed");
     }
 
-    function addNewCircle(uint256 randomNumber) internal {
+    function addNewShape(uint256 randomNumber1, uint256 randomNumber2)
+        internal
+    {
         // if there is a circle already, redo the last one to remove the class
 
+        uint256 shapeNum = randomNumber2 % 3;
+        uint256 w = 0;
+        if (shapeNum == 0) {
+            w = 14;
+        } else if (shapeNum == 1) {
+            w = 2;
+        }
         circles.push(
-            CircleAttributes({
-                x: string(Strings.toString(randomNumber % width)),
-                y: string(Strings.toString(randomNumber % height)),
-                r: string(Strings.toString((randomNumber % 8) + 2)),
-                fill: colors[randomNumber % 4]
+            ShapeAttributes({
+                x: string(Strings.toString(randomNumber1 % width)),
+                y: string(Strings.toString(randomNumber1 % height)),
+                r: string(Strings.toString(7)),
+                w: string(Strings.toString(w)),
+                h: string(Strings.toString(14)),
+                fill: colors[randomNumber1 % 3]
             })
         );
-        if (circles.length > 1) {
+        if (shapeNum == 2) {
             bodySVG = string(
                 abi.encodePacked(
                     bodySVG,
                     "<circle cx='",
-                    circles[circles.length - 2].x,
+                    circles[circles.length - 1].x,
                     "' cy='",
-                    circles[circles.length - 2].y,
+                    circles[circles.length - 1].y,
                     "' r='",
-                    circles[circles.length - 2].r,
+                    circles[circles.length - 1].r,
+                    "' fill='none' stroke='",
+                    circles[circles.length - 1].fill,
+                    "' stroke-width='3' />"
+                )
+            );
+        } else {
+            bodySVG = string(
+                abi.encodePacked(
+                    bodySVG,
+                    "<rect x='",
+                    circles[circles.length - 1].x,
+                    "' y='",
+                    circles[circles.length - 1].y,
+                    "' width='",
+                    circles[circles.length - 1].w,
+                    "' height='",
+                    circles[circles.length - 1].h,
                     "' fill='",
-                    circles[circles.length - 2].fill,
+                    circles[circles.length - 1].fill,
                     "' />"
                 )
             );
         }
-        lastCircle = string(
-            abi.encodePacked(
-                "<circle cx='",
-                circles[circles.length - 1].x,
-                "' cy='",
-                circles[circles.length - 1].y,
-                "' class='pulse'",
-                " r='",
-                circles[circles.length - 1].r,
-                "' fill='",
-                circles[circles.length - 1].fill,
-                "' />"
-            )
-        );
         string memory _finalSVG = string(
-            abi.encodePacked(headSVG, bodySVG, lastCircle, tailSVG)
+            abi.encodePacked(headSVG, bodySVG, tailSVG)
         );
         finalSVG = _finalSVG;
         string memory json = Base64.encode(
             bytes(
                 string(
                     abi.encodePacked(
-                        '{"name": "Colab NFT",',
-                        '"description": "All the spots, randomly picked, by YOU!",',
+                        '{"name": "The Worlds Largest NFT",',
+                        '"description": "The Worlds Largest NFT for SmartCon 2022",',
                         '"image": "data:image/svg+xml;base64,',
                         Base64.encode(bytes(_finalSVG)),
                         '"}'

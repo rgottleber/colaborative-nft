@@ -329,6 +329,45 @@
         }
       }
     },
+    "/Users/rg/Documents/GitHub/colaborative-nft/lib/openzeppelin-contracts/contracts/token/ERC721/utils/ERC721Holder.sol": {
+      "lastModificationDate": 1661182180878,
+      "contentHash": "54062ff887823a306b33ea6494a220bc",
+      "sourceName": "lib/openzeppelin-contracts/contracts/token/ERC721/utils/ERC721Holder.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "metadata": {
+            "bytecodeHash": "none"
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [
+        "lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol"
+      ],
+      "versionRequirement": "^0.8.0",
+      "artifacts": {
+        "ERC721Holder": {
+          "0.8.10+commit.fc410830.Darwin.appleclang": "ERC721Holder.sol/ERC721Holder.json"
+        }
+      }
+    },
     "/Users/rg/Documents/GitHub/colaborative-nft/lib/openzeppelin-contracts/contracts/utils/Address.sol": {
       "lastModificationDate": 1661182180879,
       "contentHash": "02560bbb9e081911e486286da3fa761f",
@@ -554,8 +593,8 @@
       }
     },
     "/Users/rg/Documents/GitHub/colaborative-nft/src/Contract.sol": {
-      "lastModificationDate": 1661183716140,
-      "contentHash": "cf818852646b4cbb09b8ecd00353fc16",
+      "lastModificationDate": 1661193378060,
+      "contentHash": "d971b5633ea52bab4da7cfacbdc96332",
       "sourceName": "src/Contract.sol",
       "solcConfig": {
         "settings": {
@@ -605,8 +644,8 @@
       }
     },
     "/Users/rg/Documents/GitHub/colaborative-nft/src/test/Contract.t.sol": {
-      "lastModificationDate": 1661182046623,
-      "contentHash": "7016738fe305fd90c36ea69a5cb2a78c",
+      "lastModificationDate": 1661193423741,
+      "contentHash": "2a03357c77bfaacdf1d156a4e408cb5b",
       "sourceName": "src/test/Contract.t.sol",
       "solcConfig": {
         "settings": {
@@ -634,7 +673,22 @@
         }
       },
       "imports": [
-        "lib/ds-test/src/test.sol"
+        "lib/chainlink-brownie-contracts/contracts/src/v0.8/VRFConsumerBaseV2.sol",
+        "lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol",
+        "lib/ds-test/src/test.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721URIStorage.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol",
+        "lib/openzeppelin-contracts/contracts/token/ERC721/utils/ERC721Holder.sol",
+        "lib/openzeppelin-contracts/contracts/utils/Address.sol",
+        "lib/openzeppelin-contracts/contracts/utils/Base64.sol",
+        "lib/openzeppelin-contracts/contracts/utils/Context.sol",
+        "lib/openzeppelin-contracts/contracts/utils/Strings.sol",
+        "lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol",
+        "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol",
+        "src/Contract.sol"
       ],
       "versionRequirement": "=0.8.10",
       "artifacts": {

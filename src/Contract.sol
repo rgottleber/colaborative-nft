@@ -17,13 +17,15 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
 
     // Rinkeby coordinator. For other networks,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
-    address vrfCoordinator = 0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D;
+    // address vrfCoordinator = 0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D; // Goerli
+    address vrfCoordinator = 0x2eD832Ba664535e5886b75D64C46EB9a228C2610; // Fuji
 
     // The gas lane to use, which specifies the maximum gas price to bump to.
     // For a list of available gas lanes on each network,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
     bytes32 keyHash =
-        0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15;
+        // 0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15; // Goerli
+        0x354d2f95da55398f44b7cff77da56283d9c6c829a4bdf1bbcaf2ad6a4d081f61; // Fuji
 
     // Depends on the number of requested values that you want sent to the
     // fulfillRandomWords() function. Storing each word costs about 20,000 gas,
@@ -34,7 +36,8 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
     uint32 callbackGasLimit = 999999;
 
     // The default is 3, but you can set this higher.
-    uint16 requestConfirmations = 3;
+    // uint16 requestConfirmations = 3; // Goerli
+    uint16 requestConfirmations = 1; // Fuji
 
     // For this example, retrieve 2 random values in one request.
     // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
@@ -66,17 +69,6 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
     string bodySVG = "";
     string lastShape = "";
     string[] colors = ["#3366FF", "#00FF93", "#FFFFFF"];
-
-    struct ShapeAttributes {
-        string x;
-        string y;
-        string r;
-        string w;
-        string h;
-        string fill;
-    }
-
-    ShapeAttributes[] circles;
 
     event SpotClaimed(string notification);
 
@@ -111,7 +103,7 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
         _setTokenURI(0, finalTokenURI);
     }
 
-    function callRandomWords(uint256 _val, uint256 _val2) public {
+    function callRandomWords(uint256 _val, uint256 _val2) public onlyOwner {
         uint256[] memory _randWords = new uint256[](2);
         _randWords[0] = _val;
         _randWords[1] = _val2;
@@ -119,7 +111,7 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
     }
 
     // Assumes the subscription is funded sufficiently.
-    function claimYourSpot() public onlyOwner {
+    function claimYourSpot() public {
         // Will revert if subscription is not set and funded.
         s_requestId = COORDINATOR.requestRandomWords(
             keyHash,
@@ -159,30 +151,18 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
         if (shapeNum == 0) {
             w = 14;
         } else if (shapeNum == 1) {
-            w = 2;
+            w = 3;
         }
-        circles.push(
-            ShapeAttributes({
-                x: string(Strings.toString(randomNumber1 % width)),
-                y: string(Strings.toString(randomNumber1 % height)),
-                r: string(Strings.toString(7)),
-                w: string(Strings.toString(w)),
-                h: string(Strings.toString(14)),
-                fill: colors[randomNumber1 % 3]
-            })
-        );
         if (shapeNum == 2) {
             bodySVG = string(
                 abi.encodePacked(
                     bodySVG,
                     "<circle cx='",
-                    circles[circles.length - 1].x,
+                    string(Strings.toString(randomNumber1 % width)),
                     "' cy='",
-                    circles[circles.length - 1].y,
-                    "' r='",
-                    circles[circles.length - 1].r,
-                    "' fill='none' stroke='",
-                    circles[circles.length - 1].fill,
+                    string(Strings.toString(randomNumber1 % height)),
+                    "' r='7' fill='none' stroke='",
+                    colors[randomNumber1 % 3],
                     "' stroke-width='3' />"
                 )
             );
@@ -191,15 +171,13 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
                 abi.encodePacked(
                     bodySVG,
                     "<rect x='",
-                    circles[circles.length - 1].x,
+                    string(Strings.toString(randomNumber1 % width)),
                     "' y='",
-                    circles[circles.length - 1].y,
+                    string(Strings.toString(randomNumber1 % height)),
                     "' width='",
-                    circles[circles.length - 1].w,
-                    "' height='",
-                    circles[circles.length - 1].h,
-                    "' fill='",
-                    circles[circles.length - 1].fill,
+                    string(Strings.toString(w)),
+                    "' height='14' fill='",
+                    colors[randomNumber1 % 3],
                     "' />"
                 )
             );

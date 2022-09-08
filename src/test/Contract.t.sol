@@ -6,10 +6,10 @@ import "../Contract.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
 contract ContractTest is DSTest, ERC721Holder {
-    ClaimYourSpot public c;
+    TLNFT public c;
 
     function setUp() public {
-        c = new ClaimYourSpot(123);
+        c = new TLNFT(123);
     }
 
     function testExample() public {
@@ -28,5 +28,9 @@ contract ContractTest is DSTest, ERC721Holder {
         );
         emit log(c.getSVG());
         emit log(c.tokenURI(0));
+    }
+
+    function testClaim() public {
+        c.callRandomWords(123123, 123123123123);
     }
 }

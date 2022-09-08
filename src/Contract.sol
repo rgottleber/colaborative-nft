@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 
-contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
+contract TLNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
     VRFCoordinatorV2Interface COORDINATOR;
 
     // Your subscription ID.
@@ -17,15 +17,15 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
 
     // Rinkeby coordinator. For other networks,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
-    // address vrfCoordinator = 0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D; // Goerli
-    address vrfCoordinator = 0x2eD832Ba664535e5886b75D64C46EB9a228C2610; // Fuji
+    address vrfCoordinator = 0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D; // Goerli
+    // address vrfCoordinator = 0x2eD832Ba664535e5886b75D64C46EB9a228C2610; // Fuji
 
     // The gas lane to use, which specifies the maximum gas price to bump to.
     // For a list of available gas lanes on each network,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
     bytes32 keyHash =
-        // 0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15; // Goerli
-        0x354d2f95da55398f44b7cff77da56283d9c6c829a4bdf1bbcaf2ad6a4d081f61; // Fuji
+        0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15; // Goerli
+    // 0x354d2f95da55398f44b7cff77da56283d9c6c829a4bdf1bbcaf2ad6a4d081f61; // Fuji
 
     // Depends on the number of requested values that you want sent to the
     // fulfillRandomWords() function. Storing each word costs about 20,000 gas,
@@ -36,8 +36,8 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
     uint32 callbackGasLimit = 999999;
 
     // The default is 3, but you can set this higher.
-    // uint16 requestConfirmations = 3; // Goerli
-    uint16 requestConfirmations = 1; // Fuji
+    uint16 requestConfirmations = 3; // Goerli
+    // uint16 requestConfirmations = 1; // Fuji
 
     // For this example, retrieve 2 random values in one request.
     // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
@@ -88,8 +88,8 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
             bytes(
                 string(
                     abi.encodePacked(
-                        '{"name": "The Worlds Largest NFT",',
-                        '"description": "The Worlds Largest NFT for SmartCon 2022",',
+                        '{"name": "The Most Collaborative NFT",',
+                        '"description": "The Most Collaborative NFT for SmartCon 2022",',
                         '"image": "data:image/svg+xml;base64,',
                         Base64.encode(bytes(_finalSVG)),
                         '"}'
@@ -203,6 +203,10 @@ contract ClaimYourSpot is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
             abi.encodePacked("data:application/json;base64,", json)
         );
         _setTokenURI(0, finalTokenURI);
+    }
+
+    function changeCallbackGas(uint32 _callbackGasLimit) public onlyOwner {
+        callbackGasLimit = _callbackGasLimit;
     }
 
     modifier onlyOwner() {

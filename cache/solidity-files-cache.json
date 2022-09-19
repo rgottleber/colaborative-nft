@@ -533,8 +533,8 @@
       "artifacts": {}
     },
     "/Users/rg/Documents/GitHub/colaborative-nft/src/Contract.sol": {
-      "lastModificationDate": 1662646601407,
-      "contentHash": "f0a0e87bd0407ab8494cf6a8f944c3cd",
+      "lastModificationDate": 1662647094658,
+      "contentHash": "00971fed161550312de747804431789f",
       "sourceName": "src/Contract.sol",
       "solcConfig": {
         "settings": {
@@ -577,7 +577,11 @@
         "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol"
       ],
       "versionRequirement": "^0.8.10",
-      "artifacts": {}
+      "artifacts": {
+        "TLNFT": {
+          "0.8.13+commit.abaa5c0e.Darwin.appleclang": "Contract.sol/TLNFT.json"
+        }
+      }
     },
     "/Users/rg/Documents/GitHub/colaborative-nft/src/test/Contract.t.sol": {
       "lastModificationDate": 1662646669330,

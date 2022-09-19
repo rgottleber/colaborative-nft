@@ -8,9 +8,14 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract TLNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
+contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
+    using Counters for Counters.Counter;
+
     VRFCoordinatorV2Interface COORDINATOR;
+    Counters.Counter private _tokenIdCounter;
 
     // Your subscription ID.
     uint64 s_subscriptionId;
@@ -45,7 +50,6 @@ contract TLNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
 
     uint256[] public s_randomWords;
     uint256 s_requestId;
-    address s_owner;
     mapping(uint256 => address) public requestIdToAddress;
     uint256 public width = 1920;
     uint256 public height = 1080;
@@ -74,15 +78,16 @@ contract TLNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
 
     constructor(uint64 subscriptionId)
         VRFConsumerBaseV2(vrfCoordinator)
-        ERC721("SmartCon22 Spots", "SCS")
+        ERC721("The Largest Collaborative NFT", "TLCNFT")
     {
         COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
-        s_owner = msg.sender;
         s_subscriptionId = subscriptionId;
     }
 
-    function mintNFT() public onlyOwner {
-        _safeMint(s_owner, 0);
+    function mintNFT(address to) public onlyOwner {
+        uint256 tokenId = _tokenIdCounter.current();
+        _tokenIdCounter.increment();
+        _safeMint(to, tokenId);
         string memory _finalSVG = string(
             abi.encodePacked(headSVG, bodySVG, tailSVG)
         );
@@ -91,8 +96,8 @@ contract TLNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
             bytes(
                 string(
                     abi.encodePacked(
-                        '{"name": "The Most Collaborative NFT",',
-                        '"description": "The Most Collaborative NFT for SmartCon 2022",',
+                        '{"name": "The Largest Collaborative NFT",',
+                        '"description": "The Largest Collaborative NFT for SmartCon 2022",',
                         '"image": "data:image/svg+xml;base64,',
                         Base64.encode(bytes(_finalSVG)),
                         '"}'
@@ -104,13 +109,6 @@ contract TLNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
             abi.encodePacked("data:application/json;base64,", json)
         );
         _setTokenURI(0, finalTokenURI);
-    }
-
-    function callRandomWords(uint256 _val, uint256 _val2) public onlyOwner {
-        uint256[] memory _randWords = new uint256[](2);
-        _randWords[0] = _val;
-        _randWords[1] = _val2;
-        fulfillRandomWords(123, _randWords);
     }
 
     // Assumes the subscription is funded sufficiently.
@@ -147,8 +145,6 @@ contract TLNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
     function addNewShape(uint256 randomNumber1, uint256 randomNumber2)
         internal
     {
-        // if there is a circle already, redo the last one to remove the class
-
         uint256 shapeNum = randomNumber2 % 3;
         uint256 w = 0;
         if (shapeNum == 0) {
@@ -193,8 +189,8 @@ contract TLNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
             bytes(
                 string(
                     abi.encodePacked(
-                        '{"name": "The Worlds Largest NFT",',
-                        '"description": "The Worlds Largest NFT for SmartCon 2022",',
+                        '{"name": "The Largest Collaborative NFT",',
+                        '"description": "The Largest Collaborative NFT for SmartCon 2022",',
                         '"image": "data:image/svg+xml;base64,',
                         Base64.encode(bytes(_finalSVG)),
                         '"}'
@@ -210,11 +206,6 @@ contract TLNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
 
     function changeCallbackGas(uint32 _callbackGasLimit) public onlyOwner {
         callbackGasLimit = _callbackGasLimit;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == s_owner);
-        _;
     }
 
     // The following functions are overrides required by Solidity.

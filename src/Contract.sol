@@ -79,6 +79,9 @@ contract TLNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage {
         COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
         s_owner = msg.sender;
         s_subscriptionId = subscriptionId;
+    }
+
+    function mintNFT() public onlyOwner {
         _safeMint(s_owner, 0);
         string memory _finalSVG = string(
             abi.encodePacked(headSVG, bodySVG, tailSVG)

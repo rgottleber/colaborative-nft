@@ -533,8 +533,8 @@
       "artifacts": {}
     },
     "/Users/rg/Documents/GitHub/colaborative-nft/src/Contract.sol": {
-      "lastModificationDate": 1662647094658,
-      "contentHash": "00971fed161550312de747804431789f",
+      "lastModificationDate": 1663598493139,
+      "contentHash": "9e68b0e89abc7885e66cbe9f9b757403",
       "sourceName": "src/Contract.sol",
       "solcConfig": {
         "settings": {
@@ -584,8 +584,8 @@
       }
     },
     "/Users/rg/Documents/GitHub/colaborative-nft/src/test/Contract.t.sol": {
-      "lastModificationDate": 1662646669330,
-      "contentHash": "5ccbb56bf54317db467a9bc9a4dd37ca",
+      "lastModificationDate": 1663598523022,
+      "contentHash": "0bc2f4d796c33047c27e40b767920e94",
       "sourceName": "src/test/Contract.t.sol",
       "solcConfig": {
         "settings": {

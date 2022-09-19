@@ -10,6 +10,7 @@ contract ContractTest is DSTest, ERC721Holder {
 
     function setUp() public {
         c = new TLNFT(123);
+        c.mintNFT();
     }
 
     function testExample() public {

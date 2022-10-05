@@ -4,6 +4,7 @@ pragma solidity ^0.8.10;
 
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -14,23 +15,18 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
     using Counters for Counters.Counter;
 
-    VRFCoordinatorV2Interface COORDINATOR;
+    VRFCoordinatorV2Interface immutable COORDINATOR;
+    LinkTokenInterface immutable LINKTOKEN;
+
     Counters.Counter private _tokenIdCounter;
 
     // Your subscription ID.
-    uint64 s_subscriptionId;
-
-    // Rinkeby coordinator. For other networks,
-    // see https://docs.chain.link/docs/vrf-contracts/#configurations
-    address vrfCoordinator = 0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D; // Goerli
-    // address vrfCoordinator = 0x2eD832Ba664535e5886b75D64C46EB9a228C2610; // Fuji
+    uint64 immutable s_subscriptionId;
 
     // The gas lane to use, which specifies the maximum gas price to bump to.
     // For a list of available gas lanes on each network,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
-    bytes32 keyHash =
-        0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15; // Goerli
-    // 0x354d2f95da55398f44b7cff77da56283d9c6c829a4bdf1bbcaf2ad6a4d081f61; // Fuji
+    bytes32 immutable s_keyHash;
 
     // Depends on the number of requested values that you want sent to the
     // fulfillRandomWords() function. Storing each word costs about 20,000 gas,
@@ -51,9 +47,10 @@ contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
     uint256[] public s_randomWords;
     uint256 s_requestId;
     mapping(uint256 => address) public requestIdToAddress;
+    uint256 _totalValues = 0;
+    mapping(uint256 => uint256[]) public _totalRandomWords;
     uint256 public width = 1920;
     uint256 public height = 1080;
-    string finalSVG;
     string headSVG =
         string(
             abi.encodePacked(
@@ -70,17 +67,22 @@ contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
             )
         );
     string tailSVG = "</svg>";
-    string bodySVG = "";
-    string lastShape = "";
     string[] colors = ["#3366FF", "#00FF93", "#FFFFFF"];
 
     event SpotClaimed(string notification);
 
-    constructor(uint64 subscriptionId)
+    constructor(
+        uint64 subscriptionId,
+        address vrfCoordinator,
+        address link,
+        bytes32 keyHash
+    )
         VRFConsumerBaseV2(vrfCoordinator)
         ERC721("The Largest Collaborative NFT", "TLCNFT")
     {
         COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
+        LINKTOKEN = LinkTokenInterface(link);
+        s_keyHash = keyHash;
         s_subscriptionId = subscriptionId;
     }
 
@@ -89,9 +91,8 @@ contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
         string memory _finalSVG = string(
-            abi.encodePacked(headSVG, bodySVG, tailSVG)
+            abi.encodePacked(headSVG, "", tailSVG)
         );
-        finalSVG = _finalSVG;
         string memory json = Base64.encode(
             bytes(
                 string(
@@ -115,7 +116,7 @@ contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
     function claimYourSpot() public {
         // Will revert if subscription is not set and funded.
         s_requestId = COORDINATOR.requestRandomWords(
-            keyHash,
+            s_keyHash,
             s_subscriptionId,
             requestConfirmations,
             callbackGasLimit,
@@ -123,68 +124,75 @@ contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
         );
     }
 
-    function getSVG() public view returns (string memory SVG) {
-        return
-            string(
-                abi.encodePacked(
-                    "data:image/svg+xml;base64,",
-                    Base64.encode(bytes(finalSVG))
-                )
-            );
-    }
+    // function getSVG() public view returns (string memory SVG) {
+    //     return
+    //         string(
+    //             abi.encodePacked(
+    //                 "data:image/svg+xml;base64,",
+    //                 Base64.encode(bytes(finalSVG))
+    //             )
+    //         );
+    // }
 
     function fulfillRandomWords(uint256, uint256[] memory randomWords)
         internal
         override
     {
-        s_randomWords = randomWords;
-        addNewShape(randomWords[0], randomWords[1]);
-        emit SpotClaimed("New Spot Claimed");
+        _totalRandomWords[_totalValues] = randomWords;
+        _totalValues += 1;
+        requestIdToAddress[s_requestId] = msg.sender;
+        emit SpotClaimed("Your spot has been claimed!");
     }
 
-    function addNewShape(uint256 randomNumber1, uint256 randomNumber2)
-        internal
+    function tokenURI(uint256)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
     {
-        uint256 shapeNum = randomNumber2 % 3;
-        uint256 w = 0;
-        if (shapeNum == 0) {
-            w = 14;
-        } else if (shapeNum == 1) {
-            w = 3;
-        }
-        if (shapeNum == 2) {
-            bodySVG = string(
-                abi.encodePacked(
-                    bodySVG,
-                    "<circle cx='",
-                    string(Strings.toString(randomNumber1 % width)),
-                    "' cy='",
-                    string(Strings.toString(randomNumber1 % height)),
-                    "' r='7' fill='none' stroke='",
-                    colors[randomNumber1 % 3],
-                    "' stroke-width='3' />"
-                )
-            );
-        } else {
-            bodySVG = string(
-                abi.encodePacked(
-                    bodySVG,
-                    "<rect x='",
-                    string(Strings.toString(randomNumber1 % width)),
-                    "' y='",
-                    string(Strings.toString(randomNumber1 % height)),
-                    "' width='",
-                    string(Strings.toString(w)),
-                    "' height='14' fill='",
-                    colors[randomNumber1 % 3],
-                    "' />"
-                )
-            );
+        string memory _bodySVG = "";
+        for (uint256 i = 0; i < _totalValues; i++) {
+            uint256[] memory randomWords = _totalRandomWords[i];
+            uint256 shapeNum = randomWords[1] % 3;
+            uint256 w = 0;
+            if (shapeNum == 0) {
+                w = 14;
+            } else if (shapeNum == 1) {
+                w = 3;
+            }
+            if (shapeNum == 2) {
+                _bodySVG = string(
+                    abi.encodePacked(
+                        _bodySVG,
+                        "<circle cx='",
+                        string(Strings.toString(randomWords[0] % width)),
+                        "' cy='",
+                        string(Strings.toString(randomWords[0] % height)),
+                        "' r='7' fill='none' stroke='",
+                        colors[randomWords[0] % 3],
+                        "' stroke-width='3' />"
+                    )
+                );
+            } else {
+                _bodySVG = string(
+                    abi.encodePacked(
+                        _bodySVG,
+                        "<rect x='",
+                        string(Strings.toString(randomWords[0] % width)),
+                        "' y='",
+                        string(Strings.toString(randomWords[0] % height)),
+                        "' width='",
+                        string(Strings.toString(w)),
+                        "' height='14' fill='",
+                        colors[randomWords[0] % 3],
+                        "' />"
+                    )
+                );
+            }
         }
         string memory _finalSVG = string(
-            abi.encodePacked(headSVG, bodySVG, tailSVG)
+            abi.encodePacked(headSVG, _bodySVG, tailSVG)
         );
-        finalSVG = _finalSVG;
         string memory json = Base64.encode(
             bytes(
                 string(
@@ -201,7 +209,7 @@ contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
         string memory finalTokenURI = string(
             abi.encodePacked("data:application/json;base64,", json)
         );
-        _setTokenURI(0, finalTokenURI);
+        return finalTokenURI;
     }
 
     function changeCallbackGas(uint32 _callbackGasLimit) public onlyOwner {
@@ -217,12 +225,12 @@ contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
         super._burn(tokenId);
     }
 
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override(ERC721, ERC721URIStorage)
-        returns (string memory)
-    {
-        return super.tokenURI(tokenId);
-    }
+    // function tokenURI(uint256 tokenId)
+    //     public
+    //     view
+    //     override(ERC721, ERC721URIStorage)
+    //     returns (string memory)
+    // {
+    //     return super.tokenURI(tokenId);
+    // }
 }

@@ -42,13 +42,22 @@ contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
 
     // For this example, retrieve 2 random values in one request.
     // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
-    uint32 numWords = 2;
+    uint32 public immutable numWords = 2;
 
     uint256[] public s_randomWords;
-    uint256 s_requestId;
+    uint256 public s_requestId;
     mapping(uint256 => address) public requestIdToAddress;
     uint256 _totalValues = 0;
     mapping(uint256 => uint256[]) public _totalRandomWords;
+
+    function getRandomwords(uint256 _id)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return _totalRandomWords[_id];
+    }
+
     uint256 public width = 1920;
     uint256 public height = 1080;
     string headSVG =
@@ -138,6 +147,7 @@ contract TLCNFT is VRFConsumerBaseV2, ERC721, ERC721URIStorage, Ownable {
         internal
         override
     {
+        s_randomWords = randomWords;
         _totalRandomWords[_totalValues] = randomWords;
         _totalValues += 1;
         requestIdToAddress[s_requestId] = msg.sender;

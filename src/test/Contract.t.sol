@@ -36,21 +36,69 @@ contract ContractTest is DSTest, ERC721Holder {
         c.mintNFT(address(this));
     }
 
-    function testExample() public {
+    function testSetup() public {}
+
+    function testCanGetRandomResponse() public {
         c.claimYourSpot();
-        c.claimYourSpot();
-        c.claimYourSpot();
-        emit log(c.tokenURI(0));
+        uint256 requestId = c.s_requestId();
+
+        uint256[] memory words = getWords(requestId);
+
+        vrfCoordinator.fulfillRandomWords(requestId, address(c));
+        assertTrue(c.s_randomWords(0) == words[0]);
+        assertTrue(c.s_randomWords(1) == words[1]);
     }
 
     function testClaim() public {
         c.claimYourSpot();
+        uint256 requestId = c.s_requestId();
+        vrfCoordinator.fulfillRandomWords(requestId, address(c));
+        assertTrue(keccak256(abi.encodePacked(c.tokenURI(0))) != keccak256(""));
+    }
+
+    function testMultiClaim() public {
+        uint256 requestId;
+        string memory tokenURI;
+        c.claimYourSpot();
+        requestId = c.s_requestId();
+        vrfCoordinator.fulfillRandomWords(requestId, address(c));
+        assertTrue(
+            keccak256(abi.encodePacked(c.tokenURI(0))) !=
+                keccak256(abi.encodePacked(tokenURI))
+        );
+        tokenURI = c.tokenURI(0);
+        c.claimYourSpot();
+        requestId = c.s_requestId();
+        vrfCoordinator.fulfillRandomWords(requestId, address(c));
+        assertTrue(
+            keccak256(abi.encodePacked(c.tokenURI(0))) !=
+                keccak256(abi.encodePacked(tokenURI))
+        );
+        tokenURI = c.tokenURI(0);
+        c.claimYourSpot();
+        requestId = c.s_requestId();
+        vrfCoordinator.fulfillRandomWords(requestId, address(c));
+        assertTrue(
+            keccak256(abi.encodePacked(c.tokenURI(0))) !=
+                keccak256(abi.encodePacked(tokenURI))
+        );
+        tokenURI = c.tokenURI(0);
+        emit log(c.tokenURI(0));
+    }
+
+    function testGetURI() public view {
         c.tokenURI(0);
     }
 
-    function testSetup() public {}
-
-    function testGetSVG() public view {
-        c.tokenURI(0);
+    function getWords(uint256 requestId)
+        public
+        view
+        returns (uint256[] memory)
+    {
+        uint256[] memory words = new uint256[](c.numWords());
+        for (uint256 i = 0; i < c.numWords(); i++) {
+            words[i] = uint256(keccak256(abi.encode(requestId, i)));
+        }
+        return words;
     }
 }
